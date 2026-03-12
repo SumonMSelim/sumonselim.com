@@ -198,10 +198,12 @@
     content: '';
     @apply absolute bottom-0 left-0 w-0 h-[1px] bg-primary transition-all duration-300 ease-out;
   }
-  .nav-hover:hover::after {
+  .nav-hover:hover::after,
+  .nav-hover[aria-current="page"]::after {
     @apply w-full;
   }
-  .nav-hover:hover {
+  .nav-hover:hover,
+  .nav-hover[aria-current="page"] {
     @apply text-primary;
     text-shadow: 0 0 8px hsl(var(--glow) / 0.3);
   }
