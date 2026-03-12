@@ -24,7 +24,11 @@ const applyTheme = (theme: Theme) => {
 };
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = useState<Theme>(() => (typeof window === "undefined" ? "dark" : getStoredTheme()));
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    setTheme(getStoredTheme());
+  }, []);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";

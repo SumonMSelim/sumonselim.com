@@ -23,10 +23,10 @@ const Footer = () => (
           {"\"© "}{new Date().getFullYear()}{" Muhammad Sumon Molla Selim\""}
         </span>
       </p>
-      <p className="font-mono text-[10px] text-muted-foreground/50 mt-1">
+      <p className="font-mono text-[10px] text-muted-foreground/50 mt-1" aria-hidden="true">
         {"# v"}{buildDate}
       </p>
-      <p className="font-mono text-[10px] text-muted-foreground/50 mt-1">
+      <p className="font-mono text-[10px] text-muted-foreground/50 mt-1" aria-hidden="true">
         {"# exit 0"}
       </p>
     </div>

@@ -5,10 +5,11 @@ export const RAIN_KEY = "matrix-rain";
 export const RAIN_EVENT = "matrix-rain-change";
 
 const MatrixRainToggle = () => {
-  const [enabled, setEnabled] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem(RAIN_KEY) !== "off";
-  });
+  const [enabled, setEnabled] = useState(true);
+
+  useEffect(() => {
+    setEnabled(localStorage.getItem(RAIN_KEY) !== "off");
+  }, []);
 
   // Sync if another instance changes state (e.g. mobile menu toggle)
   useEffect(() => {

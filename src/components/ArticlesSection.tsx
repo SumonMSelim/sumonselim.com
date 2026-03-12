@@ -99,7 +99,7 @@ const ArticlesSection = ({ posts = [] }: Props) => {
                 <div className="terminal-body">
                   <div className="flex gap-2 mb-3">
                     <span className="text-terminal-prompt select-none">$</span>
-                    <span className="text-terminal-foreground">ls tags/</span>
+                    <span className="text-terminal-foreground">ls tags</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {topTags.map(([tag, count]) => (
