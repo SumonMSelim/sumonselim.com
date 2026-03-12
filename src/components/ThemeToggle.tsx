@@ -24,31 +24,38 @@ const applyTheme = (theme: Theme) => {
 };
 
 const ThemeToggle = () => {
+  // SSR default "dark" avoids hydration mismatch (#418/#423).
+  // On mount, read from the DOM (already set correctly by the inline
+  // script in Layout.astro) so we never re-apply the theme and cause a flash.
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    setTheme(getStoredTheme());
+    const isDark = document.documentElement.classList.contains("dark");
+    setTheme(isDark ? "dark" : "light");
   }, []);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
+    applyTheme(next);
     localStorage.setItem(THEME_KEY, next);
     window.dispatchEvent(new CustomEvent<Theme>(THEME_CHANGE_EVENT, { detail: next }));
   };
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  useEffect(() => {
     const syncFromOtherToggle = (event: Event) => {
       const incoming = (event as CustomEvent<Theme>).detail;
-      if (incoming && incoming !== theme) setTheme(incoming);
+      if (incoming && incoming !== theme) {
+        setTheme(incoming);
+        applyTheme(incoming);
+      }
     };
     const syncFromStorage = (event: StorageEvent) => {
       if (event.key !== THEME_KEY || !isTheme(event.newValue)) return;
-      if (event.newValue !== theme) setTheme(event.newValue);
+      if (event.newValue !== theme) {
+        setTheme(event.newValue);
+        applyTheme(event.newValue);
+      }
     };
     window.addEventListener(THEME_CHANGE_EVENT, syncFromOtherToggle as EventListener);
     window.addEventListener("storage", syncFromStorage);

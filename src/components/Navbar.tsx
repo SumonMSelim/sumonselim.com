@@ -108,19 +108,23 @@ const Navbar = ({ currentPath = "/" }: NavbarProps) => {
             <p className="font-mono text-xs text-muted-foreground mb-4">
               <span className="text-primary">#!/bin/sh</span>{" # navigate"}
             </p>
-            {navItems.map(({ label, page }, i) => (
-              <a
-                key={label}
-                href={page}
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 font-mono text-base text-foreground hover:text-primary transition-colors py-2.5 px-3 -mx-3 rounded hover:bg-secondary/50"
-                style={{ transitionDelay: open ? `${0.05 + i * 0.04}s` : "0s" }}
-              >
-                <span className="text-primary text-sm shrink-0">▸</span>
-                <span className="text-muted-foreground text-sm">./</span>
-                <RotatingText text={label.toLowerCase()} interval={5000 + i * 500} />
-              </a>
-            ))}
+            {navItems.map(({ label, page }, i) => {
+              const isActive = currentPath === page;
+              return (
+                <a
+                  key={label}
+                  href={page}
+                  onClick={() => setOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex items-center gap-2 font-mono text-base transition-colors py-2.5 px-3 -mx-3 rounded hover:bg-secondary/50 ${isActive ? "text-primary bg-secondary/50" : "text-foreground hover:text-primary"}`}
+                  style={{ transitionDelay: open ? `${0.05 + i * 0.04}s` : "0s" }}
+                >
+                  <span className="text-primary text-sm shrink-0">▸</span>
+                  <span className="text-muted-foreground text-sm">./</span>
+                  <RotatingText text={label.toLowerCase()} interval={5000 + i * 500} />
+                </a>
+              );
+            })}
             <p className="font-mono text-xs text-muted-foreground mt-4">{"# done"}</p>
           </div>
         </div>
