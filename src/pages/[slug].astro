@@ -1,0 +1,213 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import MatrixRain from "@/components/MatrixRain";
+import ScanlineOverlay from "@/components/ScanlineOverlay";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
+import ShareButtons from "@/components/ShareButtons";
+import ImageLightbox from "@/components/ImageLightbox";
+import CodeEnhancer from "@/components/CodeEnhancer";
+import Embed from "@/components/mdx/Embed.astro";
+import Gallery from "@/components/mdx/Gallery.astro";
+import Image from "@/components/mdx/Image.astro";
+import { formatDate } from "@/lib/types";
+
+export async function getStaticPaths() {
+  const articles = await getCollection("articles");
+  articles.sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+  const articlePaths = articles.map((entry, i) => ({
+    params: { slug: entry.slug },
+    props: {
+      entry,
+      collection: "articles" as const,
+      prevPost: i < articles.length - 1
+        ? { slug: articles[i + 1].slug, title: articles[i + 1].data.title }
+        : null,
+      nextPost: i > 0
+        ? { slug: articles[i - 1].slug, title: articles[i - 1].data.title }
+        : null,
+    },
+  }));
+
+  const pages = await getCollection("pages");
+  const pagePaths = pages.map((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry, collection: "pages" as const, prevPost: null, nextPost: null },
+  }));
+
+  return [...articlePaths, ...pagePaths];
+}
+
+const { entry, collection, prevPost, nextPost } = Astro.props;
+const { Content } = await entry.render();
+
+const siteURL = "https://www.sumonselim.com";
+const isArticle = collection === "articles";
+
+const title = entry.data.title;
+const canonicalURL = `${siteURL}/${entry.slug}`;
+
+// Article-only fields
+const date = isArticle ? (entry.data as any).date : null;
+const tag = isArticle ? (entry.data as any).tag : null;
+const excerpt = isArticle ? (entry.data as any).excerpt : null;
+
+const wordCount = entry.body.split(/\s+/).length;
+const readingMins = Math.max(1, Math.ceil(wordCount / 200));
+
+const breadcrumbJsonLd = isArticle ? JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": siteURL },
+    { "@type": "ListItem", "position": 2, "name": "Articles", "item": `${siteURL}/articles` },
+    { "@type": "ListItem", "position": 3, "name": title, "item": canonicalURL },
+  ],
+}) : null;
+
+const articleJsonLd = isArticle ? JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": title,
+  "description": excerpt ?? title,
+  "datePublished": date,
+  "dateModified": date,
+  "inLanguage": "en-US",
+  "wordCount": wordCount,
+  "timeRequired": `PT${readingMins}M`,
+  "author": {
+    "@type": "Person",
+    "name": "Muhammad Sumon Molla Selim",
+    "url": `${siteURL}/about`,
+    "sameAs": [
+      "https://github.com/SumonMSelim",
+      "https://linkedin.com/in/sumonmselim",
+      "https://twitter.com/SumonMSelim",
+    ],
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Muhammad Sumon Molla Selim",
+    "url": siteURL,
+  },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": canonicalURL },
+  "url": canonicalURL,
+  "keywords": tag,
+}) : null;
+---
+
+<Layout
+  title={`${title} — Sumon Selim`}
+  description={excerpt ?? title}
+  ogImage={isArticle ? `/og/${entry.slug}.png` : undefined}
+  ogImageAlt={title}
+  ogType={isArticle ? "article" : "website"}
+  publishedTime={date ?? undefined}
+  keywords={tag ?? undefined}
+  canonicalURL={canonicalURL}
+>
+  {breadcrumbJsonLd && <script type="application/ld+json" slot="head" set:html={breadcrumbJsonLd} />}
+  {articleJsonLd && <script type="application/ld+json" slot="head" set:html={articleJsonLd} />}
+
+  <MatrixRain client:load />
+  <ScanlineOverlay client:load />
+  <Navbar currentPath={Astro.url.pathname} client:load />
+
+  <main class="relative z-10 pt-20 pb-10">
+    <div class="container mx-auto px-4 max-w-4xl">
+
+      <div class="mb-8 flex gap-3">
+        <a href="/" class="cli-command text-xs">&gt;<span class="cursor-blink">_</span> cd ~</a>
+        {isArticle && (
+          <a href="/articles" class="cli-command text-xs">&gt;<span class="cursor-blink">_</span> articles</a>
+        )}
+      </div>
+
+      <article itemscope itemtype={isArticle ? "https://schema.org/Article" : undefined}>
+        <header class="mb-10">
+          {isArticle && (
+            <div class="flex flex-wrap items-center gap-3 mb-4">
+              <a
+                href={`/articles?tag=${encodeURIComponent(tag)}`}
+                class="font-mono text-xs px-2 py-0.5 rounded-full border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              >
+                {tag}
+              </a>
+              <span class="font-mono text-xs text-muted-foreground">{formatDate(date)}</span>
+              <span class="font-mono text-xs text-muted-foreground ml-auto">~{readingMins} min read</span>
+            </div>
+          )}
+          <h1 itemprop={isArticle ? "headline" : undefined} class="font-display text-2xl sm:text-3xl lg:text-4xl text-foreground leading-tight">
+            {title}
+          </h1>
+        </header>
+
+        <div itemprop={isArticle ? "articleBody" : undefined} class="rich-content space-y-6 text-foreground/90 leading-[1.8] text-base sm:text-lg">
+          <Content components={{ Embed, Gallery, img: Image }} />
+        </div>
+
+        {isArticle ? (
+          <>
+            <div class="mt-12 mb-6 border-t border-border pt-6">
+              <ShareButtons title={title} url={canonicalURL} client:load />
+            </div>
+            <div class="mb-2">
+              <p class="font-mono text-xs text-muted-foreground">
+                // end of article — <span class="text-primary">process exited with code 0</span>
+              </p>
+            </div>
+          </>
+        ) : (
+          <div class="mt-12 border-t border-border pt-4">
+            <p class="font-mono text-xs text-muted-foreground">
+              // end of page — <span class="text-primary">process exited with code 0</span>
+            </p>
+          </div>
+        )}
+      </article>
+
+      {isArticle && (prevPost || nextPost) && (
+        <nav
+          class="mt-10 pt-6 border-t border-border grid grid-cols-2 gap-4"
+          aria-label="Article navigation"
+        >
+          <div>
+            {prevPost && (
+              <a
+                href={`/${prevPost.slug}`}
+                class="group flex flex-col gap-1 p-4 rounded-lg border border-border bg-card hover:border-primary transition-colors"
+              >
+                <span class="font-mono text-xs text-muted-foreground">← older</span>
+                <span class="text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                  {prevPost.title}
+                </span>
+              </a>
+            )}
+          </div>
+          <div>
+            {nextPost && (
+              <a
+                href={`/${nextPost.slug}`}
+                class="group flex flex-col gap-1 p-4 rounded-lg border border-border bg-card hover:border-primary transition-colors text-right"
+              >
+                <span class="font-mono text-xs text-muted-foreground">newer →</span>
+                <span class="text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                  {nextPost.title}
+                </span>
+              </a>
+            )}
+          </div>
+        </nav>
+      )}
+
+    </div>
+  </main>
+
+  <ImageLightbox client:load />
+  {isArticle && <CodeEnhancer client:load />}
+  <Footer />
+  <ScrollToTop client:load />
+</Layout>

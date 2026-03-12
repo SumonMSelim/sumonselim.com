@@ -1,0 +1,126 @@
+---
+// Self-hosted fonts via @fontsource (served from same origin — no Google CDN)
+import "@fontsource/special-elite";
+import "@fontsource/fira-code/300.css";
+import "@fontsource/fira-code/400.css";
+import "@fontsource/fira-code/500.css";
+import "@fontsource/fira-code/600.css";
+import "@fontsource/fira-code/700.css";
+import "@fontsource/inter/300.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/inter/700.css";
+import "../index.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  canonicalURL?: string;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  keywords?: string;
+}
+
+const {
+  title = "Sumon Selim — Senior Software Engineer",
+  description = "Muhammad Sumon Molla Selim. Senior Software Engineer, 4× AWS Certified, HashiCorp Terraform Associate, AWS Community Builder. Based in the Netherlands.",
+  ogImage = "/og-image.png",
+  ogImageAlt = "Sumon Selim — Senior Software Engineer",
+  canonicalURL = Astro.url.href,
+  ogType = "website",
+  publishedTime,
+  keywords,
+} = Astro.props;
+
+const siteURL = "https://www.sumonselim.com";
+const ogImageURL = ogImage.startsWith("http") ? ogImage : `${siteURL}${ogImage}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="theme-color" content="#00e545" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#16a34a" media="(prefers-color-scheme: light)" />
+
+    <!-- Primary SEO -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="author" content="Muhammad Sumon Molla Selim" />
+    {keywords && <meta name="keywords" content={keywords} />}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta property="og:site_name" content="Sumon Selim" />
+    <meta property="og:locale" content="en_US" />
+    {ogType === "article" && publishedTime && (
+      <meta property="article:published_time" content={publishedTime} />
+    )}
+    {ogType === "article" && (
+      <meta property="article:author" content="https://sumonselim.com/about" />
+    )}
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@SumonMSelim" />
+    <meta name="twitter:creator" content="@SumonMSelim" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Page-specific head content: JSON-LD structured data, extra meta, etc. -->
+    <slot name="head" />
+
+    <!--
+      Theme flash prevention — runs synchronously before first paint.
+      Reads localStorage and applies dark class before React hydrates.
+    -->
+    <script is:inline>
+      (function () {
+        const stored = localStorage.getItem("theme");
+        const theme = stored === "light" ? "light" : "dark";
+        if (theme === "dark") document.documentElement.classList.add("dark");
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+    <script is:inline>
+      console.log(
+        "%c  ____  _   _ __  __  ___  _   _   ____  _____ _     ___ __  __ \n" +
+        " / ___|| | | |  \\/  |/ _ \\| \\ | | / ___|| ____| |   |_ _||  \\/  |\n" +
+        " \\___ \\| | | | |\\/| | | | |  \\| | \\___ \\|  _| | |    | || |\\/| |\n" +
+        "  ___) | |_| | |  | | |_| | |\\  |  ___) | |___| |___ | || |  | |\n" +
+        " |____/ \\___/|_|  |_|\\___/|_| \\_| |____/|_____|_____|___|_|  |_|\n",
+        "color:#00e545;font-family:monospace;font-size:11px;line-height:1.4;"
+      );
+      console.log(
+        "%c > Senior Software Engineer · AWS Community Builder",
+        "color:#888;font-family:monospace;font-size:12px;"
+      );
+    </script>
+  </body>
+</html>

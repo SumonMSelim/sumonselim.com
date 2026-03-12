@@ -1,0 +1,81 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MatrixRain from "@/components/MatrixRain";
+import ScanlineOverlay from "@/components/ScanlineOverlay";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
+import AboutPage from "@/pages/_AboutPage";
+import { aboutData } from "@/lib/static-data";
+import type { Credential } from "@/lib/types";
+
+const about = aboutData;
+
+// Fetch Credly badges at build time
+let credentials: Credential[] = [];
+try {
+  const res = await fetch(
+    "https://www.credly.com/users/muhammad-sumon-molla-selim/badges.json",
+    { headers: { Accept: "application/json" } }
+  );
+  if (res.ok) {
+    const json = await res.json();
+    const badges = Array.isArray(json?.data) ? json.data : [];
+    credentials = badges
+      .filter((b: Record<string, unknown>) => b.badge_template)
+      .map((b: Record<string, unknown>) => {
+        const tmpl = b.badge_template as Record<string, unknown>;
+        const image = tmpl.image as Record<string, unknown> | undefined;
+        return {
+          name: (tmpl.name as string) ?? "",
+          imageUrl: (image?.url as string) ?? (tmpl.image_url as string) ?? "",
+          badgeUrl: (b.badge_url as string) ?? "",
+          issuer: ((tmpl.issuer as Record<string, unknown>)?.summary as string) ?? "",
+          issuedAt: (b.issued_at_date as string) ?? (b.issued_at as string) ?? "",
+        } satisfies Credential;
+      })
+      .filter((c: Credential) => c.name && c.imageUrl);
+  }
+} catch {
+  // Credly unreachable at build time — certifications text list will show instead
+}
+
+const personJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Muhammad Sumon Molla Selim",
+  "alternateName": "Sumon Selim",
+  "url": "https://www.sumonselim.com",
+  "image": "https://www.sumonselim.com/images/sumon-selim.webp",
+  "jobTitle": "Senior Software Engineer",
+  "worksFor": { "@type": "Organization", "name": "Dow Jones" },
+  "address": { "@type": "PostalAddress", "addressCountry": "NL", "addressLocality": "Purmerend" },
+  "sameAs": [
+    "https://github.com/SumonMSelim",
+    "https://linkedin.com/in/sumonmselim",
+    "https://twitter.com/SumonMSelim",
+    "https://adplist.org/mentors/muhammad-sumon-molla-selim",
+    "https://speakerdeck.com/sumonmselim",
+    "https://stackoverflow.com/users/1334933/",
+  ],
+  "description": "Senior Software Engineer based in the Netherlands with 10+ years of experience. 4× AWS Certified, HashiCorp Terraform Associate, AWS Community Builder, Top 10 ADPList Mentor in DevOps.",
+  "knowsAbout": ["Java", "PHP", "Go", "JavaScript", "TypeScript", "AWS", "GCP", "Kubernetes", "Terraform", "DevOps", "Cloud Infrastructure", "Backend Engineering", "Frontend Development"],
+});
+---
+
+<Layout
+  title="About — Muhammad Sumon Molla Selim | Senior Software Engineer"
+  description="Senior Software Engineer based in the Netherlands with 10+ years of experience. 4× AWS Certified, HashiCorp Terraform Associate, AWS Community Builder, Top 10 ADPList Mentor in DevOps, founder of Klassroom.xyz."
+  keywords="Sumon Selim, Muhammad Sumon Molla Selim, Senior Software Engineer, AWS Certified, Netherlands, DevOps, Backend Engineer, AWS Community Builder"
+>
+  <script type="application/ld+json" slot="head" set:html={personJsonLd} />
+
+  <MatrixRain client:load />
+  <ScanlineOverlay client:load />
+  <Navbar currentPath={Astro.url.pathname} client:load />
+
+  <AboutPage about={{ ...about, credentials }} client:load />
+
+  <Footer />
+  <ScrollToTop client:load />
+</Layout>

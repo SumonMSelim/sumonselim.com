@@ -1,0 +1,54 @@
+---
+title: "Fixing Date and Time Visibility Problem on elementary OS Freya Beta"
+date: "2014-10-12"
+tag: "Linux"
+excerpt: "I am a hardcore elementary OS lover and now facing date and time problem on Freya. I was using Luna for a long time. But…\nContinue readingFixing Date and Time Visibility Problem on elementary OS Freya Beta"
+---
+
+I am a hardcore **elementary OS** lover and now facing date and time problem on **Freya**. I was using **Luna** for a long time. But couldn’t wait more for the new version of elementary OS **Freya**and decided to move onto it. So installed Freya Beta 1 64 bit on my HP ProBook 4420s as my primary OS replacing Luna 32 bit.
+
+**_The Problem:_** But I found that time and date is missing on the top bar (_wingpanel_).
+
+![Date and time missing from wingpanel](/images/articles/fixing-date-time-visibility-problem-elementary-os-freya/date-time-problem.webp)
+
+**_The solution:_**
+
+After googling, I found out that the solution is to add a single line of information on the _/etc/environment_ file.
+
+I’m a terminal lover. So, I typed the following command on the terminal to edit the file. Remeber, you will need administration access to edit the file.
+
+```bash
+sudo nano /etc/environment
+```
+
+And the result was:
+
+![/etc/environment file](/images/articles/fixing-date-time-visibility-problem-elementary-os-freya/etc-environment-file.webp)
+
+All I need to do was to add the following line on it and save it.
+
+```bash
+LC_ALL="en_US.UTF-8"
+```
+
+You can set your locale (e.g. _bn_BD.UTF-8_) too as a value.
+
+After a restart the problem was fixed and date and time was visible on the wingpanel.
+
+![Date and time visible on wingpanel after fix](/images/articles/fixing-date-time-visibility-problem-elementary-os-freya/date-time-fixed.webp)
+
+Alternatively if you are not comfortable editing on the terminal, run the following command on the terminal.
+
+```bash
+gksu pantheon-files
+```
+
+This command will open the _/etc/_ folder on the Files browser and then you can edit the _environment_ file using your default text editor.
+
+If _gksu_ is not installed, you can install it by using the following command:
+
+```bash
+sudo apt-get install gksu
+```
+
+Basically **_`gksu`_** is a graphical front-end for **_sudo_** that allows graphical command to be run without the need to run an X terminal emulator and using **_su_** directly. It’s effectively just a GTK+ skin for the superuser commands.

@@ -1,0 +1,52 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@/layouts/Layout.astro";
+import MatrixRain from "@/components/MatrixRain";
+import ScanlineOverlay from "@/components/ScanlineOverlay";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
+import ArticleListPage from "@/pages/_ArticleListPage";
+import type { Article } from "@/lib/types";
+
+const entries = await getCollection("articles");
+entries.sort((a, b) => b.data.date.localeCompare(a.data.date));
+
+const posts: Article[] = entries.map((e) => ({
+  slug: e.slug,
+  title: e.data.title,
+  date: e.data.date,
+  tag: e.data.tag,
+  excerpt: e.data.excerpt,
+  blocks: [],
+}));
+
+const itemListJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Articles by Sumon Selim",
+  "url": "https://www.sumonselim.com/articles",
+  "itemListElement": posts.map((p, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "url": `https://www.sumonselim.com/${p.slug}`,
+    "name": p.title,
+  })),
+});
+---
+
+<Layout
+  title="Articles — Sumon Selim"
+  description="Technical articles, guides, and writings by Muhammad Sumon Molla Selim on AWS, cloud computing, DevOps, software engineering, and backend development."
+  keywords="AWS, cloud computing, DevOps, software engineering, Terraform, Kubernetes, backend, articles"
+>
+  <script type="application/ld+json" slot="head" set:html={itemListJsonLd} />
+  <MatrixRain client:load />
+  <ScanlineOverlay client:load />
+  <Navbar currentPath={Astro.url.pathname} client:load />
+
+  <ArticleListPage posts={posts} client:load />
+
+  <Footer />
+  <ScrollToTop client:load />
+</Layout>

@@ -1,0 +1,21 @@
+---
+/**
+ * Gallery component for MDX files.
+ * Accepts an array of image objects and renders using the PhotoGallery React component.
+ */
+import PhotoGallery from "@/components/PhotoGallery";
+
+interface Image {
+  src: string;
+  alt: string;
+  caption?: string;
+}
+
+interface Props {
+  images: Image[];
+}
+
+const { images } = Astro.props;
+---
+
+<PhotoGallery photos={images} client:visible />

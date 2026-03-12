@@ -1,0 +1,35 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MatrixRain from "@/components/MatrixRain";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+const ascii404 = [
+  " _  _    ___   _  _",
+  "| || |  / _ \\ | || |",
+  "| || |_ | | | | || |_",
+  "|__   _|| |_| |__   _|",
+  "   |_|   \\___/    |_|",
+].join("\n");
+---
+
+<Layout title="404 — Not Found · Sumon Selim">
+  <MatrixRain client:load />
+  <Navbar currentPath={Astro.url.pathname} client:load />
+
+  <main class="relative z-10 pt-20 pb-10 min-h-screen flex items-center">
+    <div class="container mx-auto px-4 max-w-4xl text-center py-20">
+      <pre
+        class="font-mono text-[11px] sm:text-sm leading-snug text-primary/70 overflow-x-auto inline-block text-left mb-8 select-none"
+        aria-hidden="true"
+      >{ascii404}</pre>
+      <p class="font-mono text-primary text-sm mb-2">// error: page not found</p>
+      <p class="font-mono text-muted-foreground text-xs mb-8">
+        exit status 1 — the resource you requested does not exist
+      </p>
+      <a href="/" class="cli-command">&gt;<span class="cursor-blink">_</span> cd ~</a>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

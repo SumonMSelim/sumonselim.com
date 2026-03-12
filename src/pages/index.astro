@@ -1,0 +1,71 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MatrixRain from "@/components/MatrixRain";
+import ScanlineOverlay from "@/components/ScanlineOverlay";
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import AboutSection from "@/components/AboutSection";
+import ArticlesSection from "@/components/ArticlesSection";
+import Footer from "@/components/Footer";
+import ScrollToTop from "@/components/ScrollToTop";
+import { getCollection } from "astro:content";
+import type { Article } from "@/lib/types";
+
+const entries = await getCollection("articles");
+entries.sort((a, b) => b.data.date.localeCompare(a.data.date));
+const posts: Article[] = entries.map((e) => ({
+  slug: e.slug,
+  title: e.data.title,
+  date: e.data.date,
+  tag: e.data.tag,
+  excerpt: e.data.excerpt,
+  blocks: [],
+}));
+
+const websiteJsonLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Sumon Selim",
+  "url": "https://www.sumonselim.com",
+  "description": "Personal website of Muhammad Sumon Molla Selim — Senior Software Engineer, AWS Community Builder, Traveler based in the Netherlands.",
+  "author": {
+    "@type": "Person",
+    "name": "Muhammad Sumon Molla Selim",
+    "url": "https://www.sumonselim.com/about",
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://www.sumonselim.com/articles?tag={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+});
+---
+
+<Layout
+  title="Muhammad Sumon Molla Selim — Senior Software Engineer · AWS Community Builder · Traveler"
+  description="Senior Software Engineer based in the Netherlands. 4× AWS Certified, HashiCorp Terraform Associate, AWS Community Builder, Top 10 ADPList Mentor in DevOps."
+  keywords="Sumon Selim, Muhammad Sumon Molla Selim, Senior Software Engineer, AWS Community Builder, Netherlands, DevOps, Backend Engineer, Terraform, Kubernetes"
+>
+  <script type="application/ld+json" slot="head" set:html={websiteJsonLd} />
+
+  <!-- Canvas rain: must be client-side (Canvas API) -->
+  <MatrixRain client:load />
+
+  <!-- Pure CSS overlay: rendered to static HTML, no JS needed -->
+  <ScanlineOverlay client:load />
+
+  <!-- Navbar: needs scroll detection + mobile menu + theme toggle -->
+  <Navbar currentPath={Astro.url.pathname} client:load />
+
+  <main id="main" class="relative z-10">
+    <!-- Hero: tagline cycling + framer-motion -->
+    <HeroSection client:load />
+
+    <!-- Sections below the fold: hydrate when they enter the viewport -->
+    <AboutSection client:visible />
+    <ArticlesSection posts={posts} client:visible />
+  </main>
+
+  <Footer />
+  <ScrollToTop client:load />
+</Layout>

@@ -1,0 +1,25 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  title?: string;
+}
+
+const { src, alt = "", title } = Astro.props;
+---
+
+<figure class="my-6">
+  <img
+    src={src}
+    alt={alt}
+    title={title}
+    class="rounded-lg border border-border w-full h-auto"
+    loading="lazy"
+    decoding="async"
+  />
+  {(title || alt) && (
+    <figcaption class="font-mono text-xs text-muted-foreground text-center mt-2">
+      {title || alt}
+    </figcaption>
+  )}
+</figure>

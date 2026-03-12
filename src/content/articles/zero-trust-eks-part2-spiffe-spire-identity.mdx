@@ -1,0 +1,128 @@
+---
+title: "Zero Trust in EKS: Workload Identity with SPIFFE/SPIRE - The New Firewall"
+date: "2026-01-10"
+tag: "AWS"
+excerpt: "In a Zero Trust architecture, relying on network location for security is a relic of the past. This post delves into how SPIFFE/SPIRE provides cryptographically verifiable identities to workloads in Amazon EKS, enabling robust mutual TLS for East-West communication."
+---
+
+In the previous installment of our Zero Trust in EKS series, we established that the traditional perimeter model is obsolete in dynamic cloud-native environments. We highlighted that **identity is the new firewall**, emphasizing the need to verify every access request regardless of its origin. This post will dive deeper into how we achieve this workload identity for East-West (service-to-service) communication within our EKS cluster using **SPIFFE** and **SPIRE**.
+
+### The Challenge of Workload Identity in Kubernetes
+
+Kubernetes pods are inherently ephemeral and dynamic. They are frequently created, destroyed, and rescheduled, leading to constantly changing IP addresses. This fluidity makes traditional IP-based security mechanisms, such as network ACLs or security groups, difficult to manage and prone to misconfiguration when applied at the workload level. Furthermore, relying solely on network-level controls doesn't provide cryptographic proof of a workload's identity, leaving systems vulnerable to IP spoofing or compromised network segments.
+
+**SPIFFE** (Secure Production Identity Framework for Everyone) addresses this challenge by providing a universal, cryptographically verifiable identity to every software workload. **SPIRE** (SPIFFE Runtime Environment) is the production-ready implementation of the SPIFFE specification, acting as an identity control plane that issues and manages these identities.
+
+### How SPIFFE/SPIRE Establishes Trust
+
+The core concept behind SPIFFE/SPIRE is to move from **network-based trust** to **cryptographic identity**. Each workload receives a unique **SPIFFE ID**, a URI that uniquely identifies a workload within a trust domain (e.g., `spiffe://your-trust-domain.com/ns/namespace/sa/service-account-name`). Along with this ID, the workload is issued a **SPIFFE Verifiable Identity Document (SVID)**, typically an X.509 certificate, which serves as its cryptographic passport.
+
+The process generally involves:
+
+1.  **Workload Attestation:** The SPIRE Agent, running on each node, attests the identity of the underlying node (e.g., using AWS EC2 instance metadata). It then attests the identity of the workloads running on that node (e.g., using Kubernetes service account tokens, pod labels, or namespaces).
+2.  **SVID Issuance:** Based on pre-defined **Registration Entries** (which map workload attributes to SPIFFE IDs), the SPIRE Server issues an SVID to the SPIRE Agent. The Agent then delivers this SVID to the workload via the Workload API.
+3.  **mTLS Communication:** Workloads use their SVIDs to establish mutual TLS (mTLS) connections. During the TLS handshake, both the client and server present their SVIDs, allowing them to cryptographically verify each other's identity and authorize access based on their SPIFFE IDs.
+
+![SPIFFE/SPIRE Workload Identity Issuance Flow](/images/articles/zero-trust-eks/spiffe-spire-flow.webp)
+
+### Implementing SPIFFE/SPIRE in our Zero Trust EKS Demo
+
+In our [URL Shortener Demo](https://github.com/SumonMSelim/zero-trust-eks-demo), we have an `api-gateway` service (built with Laravel) that needs to securely communicate with a `url-service` (built with Go). Instead of relying on network policies alone, we enforce mTLS using SPIFFE/SPIRE.
+
+#### 1. Defining Service Accounts and Registration Entries
+
+First, we define Kubernetes Service Accounts for our `api-gateway` and `url-service` in the `services` namespace. These service accounts are then used in SPIRE Registration Entries to define their unique SPIFFE IDs.
+
+For the `url-service`, a simplified registration entry might look like this:
+
+```yaml
+# kubernetes/identity/spire-registration-entries.yaml (conceptual example)
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterRegistrationEntry
+metadata:
+  name: url-service-entry
+spec:
+  spiffeId: spiffe://mol.la/ns/services/sa/url-service
+  parentID: spiffe://mol.la/spire/agent # The SPIRE Agent's ID
+  selectors:
+    - k8s:container-image:url-service # Example: Select by container image
+    - k8s:namespace:services
+    - k8s:pod-label:app:url-service
+    - k8s:serviceaccount:url-service
+  # Other selectors like k8s:pod-uid, k8s:node-name can also be used
+```
+
+This entry tells SPIRE that any workload running in the `services` namespace with the `url-service` service account should be issued the SPIFFE ID `spiffe://mol.la/ns/services/sa/url-service`.
+
+#### 2. Workload Integration: The `url-service` (Go)
+
+The `url-service` acts as the mTLS server. It uses the `go-spiffe` library to obtain its SVID from the local SPIRE Agent and configure its TLS server to require and validate client SVIDs.
+
+```go
+// apps/url-service/main.go
+func buildTLSConfig(ctx context.Context) *tls.Config {
+    // The SPIRE Agent exposes its Workload API via a Unix Domain Socket.
+    // The environment variable SPIFFE_ENDPOINT_SOCKET typically points to this.
+    socket := os.Getenv("SPIFFE_ENDPOINT_SOCKET")
+    if socket == "" {
+        socket = "unix:///spire/sockets/agent.sock" // Default path in our setup
+    }
+
+    // Create an X509Source to fetch SVIDs and trusted CAs from the SPIRE Agent.
+    // This source automatically refreshes certificates.
+    source, err := workloadapi.NewX509Source(ctx, workloadapi.WithClientOptions(workloadapi.WithAddr(socket)))
+    if err != nil {
+        log.Fatalf("Failed to create X509Source: %v", err)
+    }
+    // Store globally for an identity endpoint (for demonstration/debugging)
+    globalX509Source = source
+
+    // Define the expected SPIFFE ID of the authorized client (api-gateway).
+    // The url-service will only accept connections from this specific identity.
+    authorizedID := spiffeid.RequireFromString("spiffe://mol.la/ns/services/sa/api-gateway")
+
+    // Create an mTLS server TLS configuration using the SPIFFE X509Source.
+    // The AuthorizeID option ensures that only clients with the specified SPIFFE ID are allowed.
+    tlsConfig := tlsconfig.MTLSServerConfig(
+        source,                              // Our own identity (server's SVID)
+        source,                              // Trust bundle for validating peer (client) SVIDs
+        tlsconfig.AuthorizeID(authorizedID), // Authorization rule: only api-gateway is allowed
+    )
+
+    return tlsConfig
+}
+
+func main() {
+    // ... database initialization and other setup ...
+
+    srv := &http.Server{
+        Addr:      ":8443", // Listen on port 8443 for mTLS traffic
+        Handler:   api,
+        TLSConfig: buildTLSConfig(ctx),
+    }
+
+    log.Printf("url-service listening mTLS on :8443")
+    // Start the mTLS server. The key and cert files are managed by the TLSConfig.
+    if err := srv.ListenAndServeTLS("", ""); err != nil {
+        log.Fatalf("mTLS server error: %v", err)
+    }
+}
+```
+
+#### 3. Workload Integration: The `api-gateway` (Laravel/PHP)
+
+The `api-gateway` acts as the mTLS client. While the demo uses Laravel (PHP), the principle remains the same: the client obtains its SVID from the SPIRE Agent and uses it to establish an mTLS connection to the `url-service`.
+
+For a Go client, the setup would be similar to the server, but using `tlsconfig.MTLSClientConfig` and specifying the server's expected SPIFFE ID for authorization.
+
+### Benefits of SPIFFE/SPIRE for Zero Trust in EKS
+
+*   **Strong Workload Identity:** Each workload has a cryptographically verifiable identity, independent of network location or IP address.
+*   **Automated Certificate Management:** SPIRE handles the issuance, rotation, and revocation of SVIDs, reducing operational overhead and improving security posture.
+*   **Fine-grained Authorization:** Services can authorize incoming connections based on the client's SPIFFE ID, enabling precise access control at the application layer.
+*   **Defense in Depth:** Even if network controls are bypassed, mTLS ensures that only authorized workloads can communicate, preventing unauthorized lateral movement.
+*   **No Sidecar Proxy Overhead:** Unlike some service mesh implementations, SPIFFE/SPIRE can be integrated directly into applications, avoiding the overhead of a sidecar proxy if desired.
+
+By implementing SPIFFE/SPIRE, we've established a robust identity layer for our EKS workloads, ensuring that all East-West communication is authenticated and authorized based on cryptographic identities. In the next post, we will explore how **Kubernetes Network Policies** provide a crucial network layer of defense and how we protect sensitive data with **KMS Envelope Encryption** and **AWS Secrets Manager**.
+
+Feel free to leave your questions or insights on workload identity and mTLS in the comments below!

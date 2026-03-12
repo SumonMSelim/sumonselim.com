@@ -1,0 +1,30 @@
+# ─────────────────────────────────────────────────────────────
+# Cloudflare Pages — HTTP response headers
+# Applied at the edge to every response, zero server cost.
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+# ─────────────────────────────────────────────────────────────
+
+# ── Security headers (all routes) ────────────────────────────
+/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://images.credly.com; font-src 'self'; connect-src 'self'; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; object-src 'none'; base-uri 'self';
+
+# ── Immutable cache for fingerprinted build assets ───────────
+# Astro/Vite append a content hash to every asset filename,
+# so these can be cached forever — browsers re-fetch on deploy.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# ── Short cache for HTML pages ────────────────────────────────
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate

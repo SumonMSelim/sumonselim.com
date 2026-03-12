@@ -1,0 +1,36 @@
+---
+title: "Increase Your WordPress Maximum File Upload Size Limit"
+date: "2015-03-24"
+tag: "WordPress"
+excerpt: "I’m a part-time WordPress developer and use it mostly to develop sites for my clients.  As most of the clients use shared hosting, sometimes I…\nContinue readingIncrease Your WordPress Maximum File Upload Size Limit"
+---
+
+I’m a part-time **WordPress developer** and use it mostly to develop sites for my clients.  As most of the clients use shared hosting, sometimes I find it difficult to upload/install plugin and themes for the default maximum file upload size limit of the hosting.
+
+### Using .htaccess file
+
+The most common solution to this problem is to use a **.htaccess file** in the root directory and add the following code to it:
+
+```bash
+php_value upload_max_filesize 32M
+php_value post_max_size 32M
+php_value max_execution_time 300
+php_value max_input_time 300
+```
+
+This will override the existing values set by the host and you’ll be able to set the value as much as you want. Here, I am increasing the maximum file upload size limit to 32 MB.
+
+### Using php.ini file
+
+You can also fix the problem by creating a php.ini file in your directory and add the following code to it:
+
+```bash
+upload_max_filesize = 32M
+post_max_size = 32M
+max_execution_time = 300
+max_input_time = 300
+```
+
+But some hosting providers might not allow you to override the php.ini settings and .htaccess method can come handy then.
+
+Hope this small piece of information will help you if you face this problem. Feel free to share your method of solving this problem with us.

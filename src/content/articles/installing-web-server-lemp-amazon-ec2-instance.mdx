@@ -1,0 +1,109 @@
+---
+title: "Accessing & Installing Web Server (LEMP) on Amazon EC2 Instance"
+date: "2023-07-09"
+tag: "PHP"
+excerpt: "On my last post, I wrote about how to create and launch an Amazon EC2 instance on Amazon Web Services (AWS). We had created an…\nContinue readingAccessing & Installing Web Server (LEMP) on Amazon EC2 Instance"
+---
+
+On my last post, I wrote about how to create and [launch an Amazon EC2 instance ](http://www.sumonselim.com/launching-free-amazon-ec2-instance/)on Amazon Web Services (AWS). We had created an Amazon EC2 instance under _**“[AWS Free Tier](http://aws.amazon.com/free/)”**_ and launched it successfully. Now we will go through step-by-step guide to SSH into the instance and then install **Nginx, MySQL & PHP (LEMP)** – which will be enough for us to host a simple PHP application.
+
+We can use the public IPv4 address or the public IPv4 DNS name to SSH into the instance that we just created.
+
+![Amazon EC2 - Instance Summary](/images/articles/installing-web-server-lemp-amazon-ec2-instance/Screenshot-2023-07-13-at-02.40.17.webp)
+
+Make sure to set access permission to the ports by which we will need to communicate under the security group inbound rules. For example, here we are allowing access from anywhere to port 22 via SSH/TCP; so that we can SSH into the instance.
+
+It’s time to login to our instance via SSH using the _**.pem file –**_ we have gotten it earlier while launching our instance.
+
+We will need to change the permission of the file first by running the following command:
+
+```bash
+sudo chmod 400 ~/Keys/kodeeo-sumonmselim-ec2.pem
+```
+
+Replace the file name and location according to your environment.
+
+Then we will run the SSH command to login:
+
+```bash
+ssh ubuntu@PUBLIC_IP_ADDRESS OR DNS_OF_THE_INSTANCE
+```
+
+You will need to replace the private key file name and server IP address as per your environment and information.
+
+After successful login, you will see something like this on your terminal.
+
+![AWS EC2 - SSH into the instance](/images/articles/installing-web-server-lemp-amazon-ec2-instance/Screenshot-2023-07-13-at-02.45.27-e1689209434948-1024x640.webp)
+
+We have successfully got access to our instance and now we will install **Nginx, MySQL and PHP** to prepare a simple web server so that we can run and host our PHP application there.
+
+First of all, we will install **Nginx** by running the following command:
+
+```bash
+sudo apt install nginx
+```
+
+This will install the Nginx server on our instance. Next we will install **MySQL**.
+
+```bash
+sudo apt install mysql-server
+```
+
+You will need to provide some information like MySQL root password while installing the MySQL server.
+
+Next we will run `sudo mysql_secure_installation` to configure and set some basic settings for the MySQL server.
+
+At last, we will install **PHP** (php-fpm) to our instance along with some other modules.
+
+```bash
+sudo apt install php8.2-fpm php8.2-mysql php8.2-cli php8.2-curl
+```
+
+Next, we will need to configure the default virtual host so that we can access our web pages.
+
+Run the following command:
+
+```bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+Edit the file according to your need and you will be ready. We need to tell Nginx that all our PHP files should be run by php-fpm. Here’s the information from my file:
+
+```bash
+server {
+    listen 80;
+
+    // replace with your Amazon EC2 public DNS name or domain name
+    server_name _;
+
+    // location to your root folder
+    root /usr/share/nginx/html;
+    index index.php;
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+    sendfile off;
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/var/run/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+    }
+    
+    location ~ /\.ht {
+        deny all;
+    }
+}
+```
+
+You need to restart Nginx by running the following command and then you can visit your Public DNS name or domain name address to see the default folder of your web server.
+
+Hope this helps. If you have any questions, feel free to ask on the comment section.

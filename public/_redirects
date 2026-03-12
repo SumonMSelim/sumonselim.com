@@ -1,0 +1,9 @@
+# ─────────────────────────────────────────────────────────────
+# Cloudflare Pages — redirects & rewrites
+# Docs: https://developers.cloudflare.com/pages/configuration/redirects/
+# ─────────────────────────────────────────────────────────────
+
+# Astro SSG generates per-page HTML — no SPA fallback needed.
+# 404 is handled by src/pages/404.astro → dist/404.html
+
+/contact  /about  301

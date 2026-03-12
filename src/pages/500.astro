@@ -1,0 +1,35 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import MatrixRain from "@/components/MatrixRain";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+
+const ascii500 = [
+  " ____   ___   ___  ",
+  "| ___| / _ \\ / _ \\ ",
+  "|___ \\| | | | | | |",
+  " ___) | |_| | |_| |",
+  "|____/ \\___/ \\___/ ",
+].join("\n");
+---
+
+<Layout title="500 — Server Error · Sumon Selim">
+  <MatrixRain client:load />
+  <Navbar currentPath={Astro.url.pathname} client:load />
+
+  <main class="relative z-10 pt-20 pb-10 min-h-screen flex items-center">
+    <div class="container mx-auto px-4 max-w-4xl text-center py-20">
+      <pre
+        class="font-mono text-[11px] sm:text-sm leading-snug text-primary/70 overflow-x-auto inline-block text-left mb-8 select-none"
+        aria-hidden="true"
+      >{ascii500}</pre>
+      <p class="font-mono text-primary text-sm mb-2">// error: internal server error</p>
+      <p class="font-mono text-muted-foreground text-xs mb-8">
+        exit status 1 — something went wrong on our end
+      </p>
+      <a href="/" class="cli-command">&gt;<span class="cursor-blink">_</span> cd ~</a>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
