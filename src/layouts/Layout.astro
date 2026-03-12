@@ -35,7 +35,7 @@ const ogImageURL = ogImage.startsWith("http") ? ogImage : `${siteURL}${ogImage}`
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -95,9 +95,12 @@ const ogImageURL = ogImage.startsWith("http") ? ogImage : `${siteURL}${ogImage}`
     <script is:inline>
       (function () {
         const stored = localStorage.getItem("theme");
-        const theme = stored === "light" ? "light" : "dark";
-        if (theme === "dark") document.documentElement.classList.add("dark");
-        document.documentElement.style.colorScheme = theme;
+        if (stored === "light") {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.style.colorScheme = "light";
+        } else {
+          document.documentElement.style.colorScheme = "dark";
+        }
       })();
     </script>
   </head>
