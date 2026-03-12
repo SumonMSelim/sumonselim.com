@@ -49,10 +49,10 @@ const websiteJsonLd = JSON.stringify({
   <script type="application/ld+json" slot="head" set:html={websiteJsonLd} />
 
   <!-- Canvas rain: must be client-side (Canvas API) -->
-  <MatrixRain client:load />
+  <MatrixRain client:idle />
 
   <!-- Pure CSS overlay: rendered to static HTML, no JS needed -->
-  <ScanlineOverlay client:load />
+  <ScanlineOverlay client:idle />
 
   <!-- Navbar: needs scroll detection + mobile menu + theme toggle -->
   <Navbar currentPath={Astro.url.pathname} client:load />
@@ -67,5 +67,5 @@ const websiteJsonLd = JSON.stringify({
   </main>
 
   <Footer />
-  <ScrollToTop client:load />
+  <ScrollToTop client:idle />
 </Layout>

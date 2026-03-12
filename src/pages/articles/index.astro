@@ -41,12 +41,12 @@ const itemListJsonLd = JSON.stringify({
   keywords="AWS, cloud computing, DevOps, software engineering, Terraform, Kubernetes, backend, articles"
 >
   <script type="application/ld+json" slot="head" set:html={itemListJsonLd} />
-  <MatrixRain client:load />
-  <ScanlineOverlay client:load />
+  <MatrixRain client:idle />
+  <ScanlineOverlay client:idle />
   <Navbar currentPath={Astro.url.pathname} client:load />
 
-  <ArticleListPage posts={posts} client:load />
+  <ArticleListPage posts={posts} client:visible />
 
   <Footer />
-  <ScrollToTop client:load />
+  <ScrollToTop client:idle />
 </Layout>

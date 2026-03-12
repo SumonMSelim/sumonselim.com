@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import MatrixRainToggle from "./MatrixRainToggle";
 import RotatingText from "./RotatingText";
 
 const navItems = [
-  { label: "About", page: "/about", anchor: null },
-  { label: "Articles", page: "/articles", anchor: null },
-  { label: "Mentorship", page: "/mentorship", anchor: null },
-  { label: "Privacy", page: "/privacy-policy", anchor: null },
+  { label: "About", page: "/about" },
+  { label: "Articles", page: "/articles" },
+  { label: "Mentorship", page: "/mentorship" },
+  { label: "Privacy", page: "/privacy-policy" },
 ];
 
 interface NavbarProps {
@@ -38,9 +37,6 @@ const Navbar = ({ currentPath = "/" }: NavbarProps) => {
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
-  // Same menu on all pages: About, Articles, Mentorship, Privacy
-  const resolvedNavItems = navItems.map(({ label, page }) => ({ label, href: page }));
-
   return (
     <>
       <nav
@@ -56,10 +52,11 @@ const Navbar = ({ currentPath = "/" }: NavbarProps) => {
           </a>
 
           <div className="hidden sm:flex items-center gap-1">
-            {resolvedNavItems.map(({ label, href }) => (
+            {navItems.map(({ label, page }) => (
               <a
                 key={label}
-                href={href}
+                href={page}
+                aria-current={currentPath === page ? "page" : undefined}
                 className="nav-hover font-mono text-sm text-muted-foreground px-2 py-1"
               >
                 <span className="text-primary">./</span>
@@ -85,74 +82,53 @@ const Navbar = ({ currentPath = "/" }: NavbarProps) => {
         </div>
       </nav>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-50 bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation"
-          >
-            <button
-              onClick={() => setOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-md border border-border bg-secondary text-secondary-foreground hover:border-primary transition-colors font-mono text-xs"
-              aria-label="Close menu"
-            >
-              [x]
-            </button>
+      <div
+        className={`fixed inset-0 z-50 bg-background/98 backdrop-blur-xl flex flex-col items-center justify-center transition-opacity duration-250 ${open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Mobile navigation"
+        aria-hidden={!open}
+      >
+        <button
+          onClick={() => setOpen(false)}
+          className="absolute top-4 right-4 p-2 rounded-md border border-border bg-secondary text-secondary-foreground hover:border-primary transition-colors font-mono text-xs"
+          aria-label="Close menu"
+        >
+          [x]
+        </button>
 
-            <div className="terminal-card w-[85vw] max-w-sm">
-              <div className="terminal-header">
-                <span className="terminal-dot bg-destructive" />
-                <span className="terminal-dot" style={{ backgroundColor: "hsl(45, 90%, 50%)" }} />
-                <span className="terminal-dot bg-primary" />
-                <span className="ml-2 text-xs font-mono text-muted-foreground">navigation.sh</span>
-              </div>
-              <div className="p-5 space-y-1">
-                <p className="font-mono text-xs text-muted-foreground mb-4">
-                  <span className="text-primary">#!/bin/sh</span>{" # navigate"}
-                </p>
-                {resolvedNavItems.map(({ label, href }, i) => {
-                  const inner = (
-                    <>
-                      <span className="text-primary text-sm shrink-0">▸</span>
-                      <span className="text-muted-foreground text-sm">./</span>
-                      <RotatingText text={label.toLowerCase()} interval={5000 + i * 500} />
-                    </>
-                  );
-                  const cls = "flex items-center gap-2 font-mono text-base text-foreground hover:text-primary transition-colors py-2.5 px-3 -mx-3 rounded hover:bg-secondary/50";
-                  return (
-                    <motion.div
-                      key={label}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + i * 0.06 }}
-                    >
-                      <a href={href} onClick={() => setOpen(false)} className={cls}>
-                        {inner}
-                      </a>
-                    </motion.div>
-                  );
-                })}
-                <p className="font-mono text-xs text-muted-foreground mt-4">{"# done"}</p>
-              </div>
-            </div>
+        <div className="terminal-card w-[85vw] max-w-sm">
+          <div className="terminal-header">
+            <span className="terminal-dot bg-destructive" />
+            <span className="terminal-dot" style={{ backgroundColor: "hsl(45, 90%, 50%)" }} />
+            <span className="terminal-dot bg-primary" />
+            <span className="ml-2 text-xs font-mono text-muted-foreground">navigation.sh</span>
+          </div>
+          <div className="p-5 space-y-1">
+            <p className="font-mono text-xs text-muted-foreground mb-4">
+              <span className="text-primary">#!/bin/sh</span>{" # navigate"}
+            </p>
+            {navItems.map(({ label, page }, i) => (
+              <a
+                key={label}
+                href={page}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 font-mono text-base text-foreground hover:text-primary transition-colors py-2.5 px-3 -mx-3 rounded hover:bg-secondary/50"
+                style={{ transitionDelay: open ? `${0.05 + i * 0.04}s` : "0s" }}
+              >
+                <span className="text-primary text-sm shrink-0">▸</span>
+                <span className="text-muted-foreground text-sm">./</span>
+                <RotatingText text={label.toLowerCase()} interval={5000 + i * 500} />
+              </a>
+            ))}
+            <p className="font-mono text-xs text-muted-foreground mt-4">{"# done"}</p>
+          </div>
+        </div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="font-mono text-[10px] text-muted-foreground mt-6"
-            >
-              // press <span className="text-primary">ESC</span> to close
-            </motion.p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <p className="font-mono text-[10px] text-muted-foreground mt-6">
+          // press <span className="text-primary">ESC</span> to close
+        </p>
+      </div>
     </>
   );
 };

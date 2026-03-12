@@ -70,12 +70,12 @@ const personJsonLd = JSON.stringify({
 >
   <script type="application/ld+json" slot="head" set:html={personJsonLd} />
 
-  <MatrixRain client:load />
-  <ScanlineOverlay client:load />
+  <MatrixRain client:idle />
+  <ScanlineOverlay client:idle />
   <Navbar currentPath={Astro.url.pathname} client:load />
 
-  <AboutPage about={{ ...about, credentials }} client:load />
+  <AboutPage about={{ ...about, credentials }} client:visible />
 
   <Footer />
-  <ScrollToTop client:load />
+  <ScrollToTop client:idle />
 </Layout>
