@@ -96,8 +96,10 @@ const ogImageURL = ogImage.startsWith("http") ? ogImage : `${siteURL}${ogImage}`
       (function () {
         const stored = localStorage.getItem("theme");
         const theme = stored === "light" ? "light" : "dark";
-        if (theme === "dark") document.documentElement.classList.add("dark");
-        document.documentElement.style.colorScheme = theme;
+        const root = document.documentElement;
+        if (theme === "dark") root.classList.add("dark");
+        root.style.colorScheme = theme;
+        root.style.backgroundColor = theme === "dark" ? "hsl(0 0% 5%)" : "hsl(0 0% 98%)";
       })();
     </script>
   </head>
