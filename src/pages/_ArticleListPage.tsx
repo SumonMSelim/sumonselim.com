@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import AnimatedSection from "@/components/AnimatedSection";
 import type { Article } from "@/lib/types";
 import { formatDate } from "@/lib/types";
 
@@ -13,12 +11,14 @@ interface Props {
 const ArticleListPage = ({ posts }: Props) => {
   const allTags = ["All", ...Array.from(new Set(posts.map(p => p.tag)))];
 
-  const [filter, setFilter] = useState<string>(() => {
-    if (typeof window === "undefined") return "All";
-    const param = new URLSearchParams(window.location.search).get("tag");
-    return param && allTags.includes(param) ? param : "All";
-  });
+  const [filter, setFilter] = useState("All");
   const [page, setPage] = useState(1);
+
+  // Read tag from URL after mount (avoids SSR/client mismatch)
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("tag");
+    if (param && allTags.includes(param)) setFilter(param);
+  }, []);
 
   // Keep URL in sync with filter
   useEffect(() => {
@@ -43,7 +43,7 @@ const ArticleListPage = ({ posts }: Props) => {
   return (
     <main className="relative z-10 pt-20 pb-10">
       <div className="container mx-auto px-4 max-w-4xl">
-        <AnimatedSection>
+        <div className="animate-fade-in">
           <div className="mb-6">
             <a href="/" className="cli-command text-xs">&gt;<span className="cursor-blink">_</span> cd ~</a>
           </div>
@@ -65,7 +65,7 @@ const ArticleListPage = ({ posts }: Props) => {
               </button>
             ))}
           </div>
-        </AnimatedSection>
+        </div>
 
         <div className="space-y-3">
           <p className="font-mono text-sm text-muted-foreground">
@@ -74,29 +74,26 @@ const ArticleListPage = ({ posts }: Props) => {
           </p>
 
           {paginated.map((article, i) => (
-            <motion.div
+            <div
               key={article.slug}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
+              className="animate-fade-in"
+              style={{ animationDelay: `${i * 0.04}s`, animationFillMode: "both", opacity: 0 }}
             >
-              <a
-                href={`/${article.slug}`}
-                className="card-hover flex items-start gap-3 p-4 rounded-lg border border-border bg-card group"
-              >
+              <div className="card-hover flex items-start gap-3 p-4 rounded-lg border border-border bg-card group relative">
                 <span className="font-mono text-xs text-primary shrink-0 mt-0.5">▸</span>
                 <div className="flex-1 min-w-0">
-                  <p className="font-mono text-sm text-foreground group-hover:text-primary transition-colors">
-                    {article.title}
-                  </p>
-                  {article.excerpt && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{article.excerpt}</p>
-                  )}
-                  <div className="flex gap-2 mt-2">
+                  <a href={`/${article.slug}`} className="block after:absolute after:inset-0">
+                    <p className="font-mono text-sm text-foreground group-hover:text-primary transition-colors">
+                      {article.title}
+                    </p>
+                    {article.excerpt && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{article.excerpt}</p>
+                    )}
+                  </a>
+                  <div className="flex gap-2 mt-2 relative z-10">
                     <span className="text-xs text-muted-foreground">{formatDate(article.date)}</span>
                     <a
                       href={`/articles?tag=${encodeURIComponent(article.tag)}`}
-                      onClick={e => e.stopPropagation()}
                       className="text-xs px-1.5 rounded border border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-colors"
                     >
                       {article.tag}
@@ -104,14 +101,13 @@ const ArticleListPage = ({ posts }: Props) => {
                   </div>
                 </div>
                 <span className="font-mono text-xs text-muted-foreground shrink-0">→</span>
-              </a>
-            </motion.div>
+              </div>
+            </div>
           ))}
 
           <p className="font-mono text-sm text-muted-foreground">{"# ---"}</p>
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
             <button

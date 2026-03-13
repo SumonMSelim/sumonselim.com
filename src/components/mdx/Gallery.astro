@@ -1,21 +1,36 @@
 ---
-/**
- * Gallery component for MDX files.
- * Accepts an array of image objects and renders using the PhotoGallery React component.
- */
 import PhotoGallery from "@/components/PhotoGallery";
+import { getImage } from "astro:assets";
 
-interface Image {
+interface GalleryImage {
   src: string;
   alt: string;
   caption?: string;
 }
 
 interface Props {
-  images: Image[];
+  images: GalleryImage[];
 }
 
 const { images } = Astro.props;
+
+const localImages = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/images/**/*.{png,jpg,jpeg,webp,gif,svg}"
+);
+
+const resolved = await Promise.all(
+  images.map(async (img) => {
+    const assetKey = img.src.startsWith("/images/articles/")
+      ? `/src/assets/images/${img.src.slice("/images/articles/".length)}`
+      : null;
+    const mod = assetKey && localImages[assetKey] ? await localImages[assetKey]() : null;
+    if (mod?.default) {
+      const optimized = await getImage({ src: mod.default, format: "webp" });
+      return { ...img, src: optimized.src };
+    }
+    return img;
+  })
+);
 ---
 
-<PhotoGallery photos={images} client:visible />
+<PhotoGallery photos={resolved} client:visible />

@@ -7,9 +7,10 @@ interface Props {
   url: string;
   title?: string;
   height?: number;
+  loading?: "lazy" | "eager";
 }
 
-const { url, title = "Embedded content", height = 400 } = Astro.props;
+const { url, title = "Embedded content", height = 400, loading = "lazy" } = Astro.props;
 const isVideo = /youtube|youtu\.be|vimeo/i.test(url);
 ---
 
@@ -21,7 +22,7 @@ const isVideo = /youtube|youtu\.be|vimeo/i.test(url);
         title={title}
         class="absolute inset-0 w-full h-full"
         allowfullscreen
-        loading="lazy"
+        loading={loading}
       />
     </div>
   ) : (
@@ -30,7 +31,7 @@ const isVideo = /youtube|youtu\.be|vimeo/i.test(url);
       title={title}
       width="100%"
       height={height}
-      loading="lazy"
+      loading={loading}
       class="border-0 block"
       allow="encrypted-media"
     />

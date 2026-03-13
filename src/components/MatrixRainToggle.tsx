@@ -4,11 +4,16 @@ import { Zap, ZapOff } from "lucide-react";
 export const RAIN_KEY = "matrix-rain";
 export const RAIN_EVENT = "matrix-rain-change";
 
-const MatrixRainToggle = () => {
-  const [enabled, setEnabled] = useState(true);
+interface Props {
+  defaultEnabled?: boolean;
+}
+
+const MatrixRainToggle = ({ defaultEnabled = true }: Props) => {
+  const [enabled, setEnabled] = useState(defaultEnabled);
 
   useEffect(() => {
-    setEnabled(localStorage.getItem(RAIN_KEY) !== "off");
+    const stored = localStorage.getItem(RAIN_KEY);
+    setEnabled(stored === null ? defaultEnabled : stored !== "off");
   }, []);
 
   // Sync if another instance changes state (e.g. mobile menu toggle)
