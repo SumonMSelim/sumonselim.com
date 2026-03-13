@@ -15,6 +15,9 @@ export default defineConfig({
         light: "github-light",
         dark: "github-dark",
       },
+      transformers: [
+        { pre(node) { delete node.properties.tabindex; } },
+      ],
     },
   },
 
@@ -26,6 +29,9 @@ export default defineConfig({
           light: "github-light",
           dark: "github-dark",
         },
+        transformers: [
+          { pre(node) { delete node.properties.tabindex; } },
+        ],
       },
     }),
 
@@ -54,6 +60,7 @@ export default defineConfig({
       alias: {
         "@": "/src",
       },
+      dedupe: ["react", "react-dom"],
     },
     server: {
       watch: {

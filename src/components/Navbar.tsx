@@ -12,9 +12,10 @@ const navItems = [
 
 interface NavbarProps {
   currentPath?: string;
+  defaultRain?: boolean;
 }
 
-const Navbar = ({ currentPath = "/" }: NavbarProps) => {
+const Navbar = ({ currentPath = "/", defaultRain = true }: NavbarProps) => {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -63,12 +64,12 @@ const Navbar = ({ currentPath = "/" }: NavbarProps) => {
                 <RotatingText text={label.toLowerCase()} interval={6000} />
               </a>
             ))}
-            <MatrixRainToggle />
+            <MatrixRainToggle defaultEnabled={defaultRain} />
             <ThemeToggle />
           </div>
 
           <div className="flex items-center gap-2 sm:hidden">
-            <MatrixRainToggle />
+            <MatrixRainToggle defaultEnabled={defaultRain} />
             <ThemeToggle />
             <button
               onClick={() => setOpen(!open)}

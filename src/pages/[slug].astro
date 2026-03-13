@@ -112,9 +112,9 @@ const articleJsonLd = isArticle ? JSON.stringify({
   {breadcrumbJsonLd && <script type="application/ld+json" slot="head" set:html={breadcrumbJsonLd} />}
   {articleJsonLd && <script type="application/ld+json" slot="head" set:html={articleJsonLd} />}
 
-  <MatrixRain client:idle />
+  <MatrixRain defaultEnabled={false} client:idle />
   <ScanlineOverlay client:idle />
-  <Navbar currentPath={Astro.url.pathname} client:load />
+  <Navbar currentPath={Astro.url.pathname} defaultRain={false} client:load />
 
   <main class="relative z-10 pt-20 pb-10">
     <div class="container mx-auto px-4 max-w-4xl">

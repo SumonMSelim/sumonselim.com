@@ -36,31 +36,31 @@ const ArticlesSection = ({ posts = [] }: Props) => {
               </h3>
               <div className="space-y-3">
                 {articles.map((article) => (
-                  <a
+                  <div
                     key={article.slug}
-                    href={`/${article.slug}`}
-                    className="card-hover flex items-start gap-3 p-4 rounded-lg border border-border bg-card group"
+                    className="card-hover flex items-start gap-3 p-4 rounded-lg border border-border bg-card group relative"
                   >
                     <span className="font-mono text-xs text-primary shrink-0 mt-0.5">▸</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 sm:truncate">
-                        {article.title}
-                      </p>
-                      {article.excerpt && (
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{article.excerpt}</p>
-                      )}
-                      <div className="flex gap-2 mt-1">
+                      <a href={`/${article.slug}`} className="block after:absolute after:inset-0">
+                        <p className="font-mono text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2 sm:truncate">
+                          {article.title}
+                        </p>
+                        {article.excerpt && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{article.excerpt}</p>
+                        )}
+                      </a>
+                      <div className="flex gap-2 mt-1 relative z-10">
                         <span className="text-xs text-muted-foreground">{formatDate(article.date)}</span>
                         <a
                           href={`/articles?tag=${encodeURIComponent(article.tag)}`}
-                          onClick={e => e.stopPropagation()}
                           className="text-xs px-1.5 rounded border border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-colors"
                         >
                           {article.tag}
                         </a>
                       </div>
                     </div>
-                  </a>
+                  </div>
                 ))}
               </div>
               <p className="font-mono text-sm text-muted-foreground mt-3 mb-8">{"# ---"}</p>

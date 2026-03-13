@@ -3,11 +3,16 @@ import { RAIN_KEY, RAIN_EVENT } from "./MatrixRainToggle";
 
 const chars = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEF<>/{}[];=+-*&^%$#@!";
 
-const MatrixRain = () => {
+interface Props {
+  defaultEnabled?: boolean;
+}
+
+const MatrixRain = ({ defaultEnabled = true }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return localStorage.getItem(RAIN_KEY) !== "off";
+    if (typeof window === "undefined") return defaultEnabled;
+    const stored = localStorage.getItem(RAIN_KEY);
+    return stored === null ? defaultEnabled : stored !== "off";
   });
 
   useEffect(() => {

@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+
 interface Props {
   src: string;
   alt?: string;
@@ -6,17 +8,37 @@ interface Props {
 }
 
 const { src, alt = "", title } = Astro.props;
+
+const localImages = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/images/**/*.{png,jpg,jpeg,webp,gif,svg}"
+);
+
+// MDX uses /images/articles/{slug}/file → /src/assets/images/{slug}/file
+const assetKey = src.startsWith("/images/articles/")
+  ? `/src/assets/images/${src.slice("/images/articles/".length)}`
+  : null;
+const mod = assetKey && localImages[assetKey] ? await localImages[assetKey]() : null;
+const imageData = mod?.default ?? null;
 ---
 
 <figure class="my-6">
-  <img
-    src={src}
-    alt={alt}
-    title={title}
-    class="rounded-lg border border-border w-full h-auto"
-    loading="lazy"
-    decoding="async"
-  />
+  {imageData ? (
+    <Image
+      src={imageData}
+      alt={alt}
+      title={title}
+      class="rounded-lg border border-border w-full h-auto"
+      decoding="async"
+    />
+  ) : (
+    <img
+      src={src}
+      alt={alt}
+      title={title}
+      class="rounded-lg border border-border w-full h-auto"
+      decoding="async"
+    />
+  )}
   {(title || alt) && (
     <figcaption class="font-mono text-xs text-muted-foreground text-center mt-2">
       {title || alt}

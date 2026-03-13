@@ -14,8 +14,8 @@ const ascii500 = [
 ---
 
 <Layout title="500 — Server Error · Sumon Selim">
-  <MatrixRain client:idle />
-  <Navbar currentPath={Astro.url.pathname} client:load />
+  <MatrixRain defaultEnabled={false} client:idle />
+  <Navbar currentPath={Astro.url.pathname} defaultRain={false} client:load />
 
   <main class="relative z-10 pt-20 pb-10 min-h-screen flex items-center">
     <div class="container mx-auto px-4 max-w-4xl text-center py-20">

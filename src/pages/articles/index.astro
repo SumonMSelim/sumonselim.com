@@ -18,7 +18,6 @@ const posts: Article[] = entries.map((e) => ({
   date: e.data.date,
   tag: e.data.tag,
   excerpt: e.data.excerpt,
-  blocks: [],
 }));
 
 const itemListJsonLd = JSON.stringify({
@@ -41,9 +40,9 @@ const itemListJsonLd = JSON.stringify({
   keywords="AWS, cloud computing, DevOps, software engineering, Terraform, Kubernetes, backend, articles"
 >
   <script type="application/ld+json" slot="head" set:html={itemListJsonLd} />
-  <MatrixRain client:idle />
+  <MatrixRain defaultEnabled={false} client:idle />
   <ScanlineOverlay client:idle />
-  <Navbar currentPath={Astro.url.pathname} client:load />
+  <Navbar currentPath={Astro.url.pathname} defaultRain={false} client:load />
 
   <ArticleListPage posts={posts} client:visible />
 

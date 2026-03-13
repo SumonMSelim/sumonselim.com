@@ -24,38 +24,33 @@ const applyTheme = (theme: Theme) => {
 };
 
 const ThemeToggle = () => {
-  // SSR default "dark" avoids hydration mismatch (#418/#423).
-  // On mount, read from the DOM (already set correctly by the inline
-  // script in Layout.astro) so we never re-apply the theme and cause a flash.
   const [theme, setTheme] = useState<Theme>("dark");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setTheme(isDark ? "dark" : "light");
+    setTheme(getStoredTheme());
+    setMounted(true);
   }, []);
 
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    applyTheme(next);
     localStorage.setItem(THEME_KEY, next);
     window.dispatchEvent(new CustomEvent<Theme>(THEME_CHANGE_EVENT, { detail: next }));
   };
 
   useEffect(() => {
+    if (mounted) applyTheme(theme);
+  }, [theme, mounted]);
+
+  useEffect(() => {
     const syncFromOtherToggle = (event: Event) => {
       const incoming = (event as CustomEvent<Theme>).detail;
-      if (incoming && incoming !== theme) {
-        setTheme(incoming);
-        applyTheme(incoming);
-      }
+      if (incoming && incoming !== theme) setTheme(incoming);
     };
     const syncFromStorage = (event: StorageEvent) => {
       if (event.key !== THEME_KEY || !isTheme(event.newValue)) return;
-      if (event.newValue !== theme) {
-        setTheme(event.newValue);
-        applyTheme(event.newValue);
-      }
+      if (event.newValue !== theme) setTheme(event.newValue);
     };
     window.addEventListener(THEME_CHANGE_EVENT, syncFromOtherToggle as EventListener);
     window.addEventListener("storage", syncFromStorage);
@@ -75,7 +70,7 @@ const ThemeToggle = () => {
       title={label}
       className="p-2 rounded-md border border-border bg-secondary text-secondary-foreground hover:border-primary transition-colors"
     >
-      <Icon className="w-4 h-4" />
+      {mounted ? <Icon className="w-4 h-4" /> : <span className="w-4 h-4 inline-block" />}
     </button>
   );
 };
