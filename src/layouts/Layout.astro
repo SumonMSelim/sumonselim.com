@@ -96,10 +96,16 @@ const ogImageURL = ogImage.startsWith("http") ? ogImage : `${siteURL}${ogImage}`
       (function () {
         const stored = localStorage.getItem("theme");
         const theme = stored === "light" ? "light" : "dark";
+        const bg = theme === "dark" ? "hsl(0 0% 5%)" : "hsl(0 0% 98%)";
         const root = document.documentElement;
         if (theme === "dark") root.classList.add("dark");
         root.style.colorScheme = theme;
-        root.style.backgroundColor = theme === "dark" ? "hsl(0 0% 5%)" : "hsl(0 0% 98%)";
+        root.style.backgroundColor = bg;
+        // Inject body background before body element is created so the
+        // browser never paints the UA default white during MPA navigation.
+        var s = document.createElement("style");
+        s.textContent = "body{background-color:" + bg + "}";
+        document.head.appendChild(s);
       })();
     </script>
   </head>
